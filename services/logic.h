@@ -21,7 +21,6 @@ struct persist{
 
 class id_schema{
     private:
-    id_schema()=default;
     time_t time_id();
     uint64_t user_space_position(bool user_or_space);
     uint64_t current_user;
@@ -33,6 +32,7 @@ class id_schema{
     std::mutex mtx;
 
     public:
+    id_schema()=default;
     std::string generate_id(std::string option,std::string user_id_f_ugc="0",std::string space_id_f_ugc="0");
     bool del_user(std::string user_id,std::string user_pos);
     bool del_space(std::string space_id,std::string space_pos);

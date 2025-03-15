@@ -15,13 +15,13 @@ using namespace std;
 
 class getId_controller{
     private:
-    getId_controller()=default;
     id_schema engine;
     jsonScript json;
     void url_2_body_gen(boost::beast::http::request<boost::beast::http::string_body>& req,std::string& body_2_send);
     std::string cast(boost::urls::params_view::iterator value_2_cast);
 
     public:
+    getId_controller()=default;
     void get_indi_id(boost::beast::http::request<boost::beast::http::string_body>& req,boost::beast::http::response<boost::beast::http::string_body>& res);
 };
 

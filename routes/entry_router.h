@@ -6,8 +6,8 @@
 
 #include <auth.h>
 
-// #include <getter_routes.h>
-// #include <deleter_routes.h>
+#include <getter_routes.h>
+#include <deleter_routes.h>
 
 #include <boost/asio.hpp>
 #include <boost/asio/spawn.hpp>
@@ -21,8 +21,8 @@ class route_handler{
         void request_handler(boost::beast::http::request<boost::beast::http::string_body>& req,boost::beast::http::response<boost::beast::http::string_body>& res);
 
     private:
-        // get_router getter;
-        // delete_routes delete_;
+        get_router getter;
+        delete_routes delete_;
         auth_middleware middle_verify;
         url_dep url;
 
@@ -47,13 +47,13 @@ void route_handler::request_handler(boost::beast::http::request<boost::beast::ht
 
         case boost::beast::http::verb::get:
 
-            // this->getter.route(req,res);
+            this->getter.route(req,res);
             
             break;
 
         case boost::beast::http::verb::delete_:
 
-            // this->delete_.route(req,res);
+            this->delete_.route(req,res);
 
             break;
 

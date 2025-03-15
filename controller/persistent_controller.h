@@ -14,12 +14,12 @@ using namespace std;
 
 class persistent_class{
     private:
-    persistent_class()=default;
     id_schema engine;
     jsonScript json;
     persist get_persistent();
 
     public:
+    persistent_class()=default;
     void payload(boost::beast::http::response<boost::beast::http::string_body>& res);
 };
 
