@@ -17,7 +17,6 @@
 using namespace std;
 
 
-
 class connections{
 private:
     route_handler handler;
@@ -149,7 +148,7 @@ void connections::r_w_handler(std::shared_ptr<boost::asio::ip::tcp::socket> sock
 
             boost::beast::http::async_read(stream_socket, buffer, req, yield);
 
-            handler.request_handler(req, res);
+            this->handler.request_handler(req, res);
 
             boost::beast::http::async_write(stream_socket, res, yield);
 
@@ -185,4 +184,4 @@ void connections::r_w_handler(std::shared_ptr<boost::asio::ip::tcp::socket> sock
 
         };
     }
-}#include <logic.h>
+}

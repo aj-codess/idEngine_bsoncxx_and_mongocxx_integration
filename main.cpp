@@ -33,6 +33,47 @@ private:
 };
 
 
+void conn::start_server() {
+
+     auto env_writter=[&](){
+
+            std::ofstream path(ENV);
+
+            if (path.is_open()){
+
+                try{
+
+                    std::string gen=hasher.hash(this->shrink.compress(GLOBAL));
+
+                    path<<gen<<endl;
+
+                    path.close();
+
+                } catch(const std::exception e){
+
+                    cout<<"unable to write env - "<<e.what()<<endl;
+
+                };
+
+            };
+        };
+
+        env_writter();
+
+    server.start_server();
+
+}
+
+
+
+
+bool conn::get_server_status() {
+
+    return server.get_status();
+
+};
+
+
 int main(){
 
     domain url{"localhost", "8080"};

@@ -11,7 +11,6 @@ using namespace std;
 
 class shrink_operands{
     private:
-    shrink_operands()=default;
     std::string reader(std::vector<unsigned char> x);
 
     public:

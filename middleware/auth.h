@@ -11,7 +11,7 @@
 #include <url_dep.h>
 #include <session_manager.h>
 #include <token_dep.h>
-#include <timer.h>
+#include <timer_module.h>
 
 using namespace std;
 
@@ -32,9 +32,11 @@ class auth_middleware{
 
 bool auth_middleware::entry(boost::beast::http::request<boost::beast::http::string_body>& req,boost::beast::http::response<boost::beast::http::string_body>& res){
 
+    bool status;
+
     auto auth_header=req[boost::beast::http::field::authorization];
 
-    if(this->url.sniff(req,"beryl")==true && !auth_header.empty()){
+    if(this->url.sniff(req,"/")==true && !auth_header.empty()){
 
         std::string auth_value(auth_header.data(), auth_header.size());
 
@@ -56,7 +58,7 @@ bool auth_middleware::entry(boost::beast::http::request<boost::beast::http::stri
 
                 req.set("id",id);
 
-                return true;
+                status=true;
 
             } else{
 
@@ -78,11 +80,11 @@ bool auth_middleware::entry(boost::beast::http::request<boost::beast::http::stri
 
                     req.set("id",new_id);
 
-                    return true;
+                    status=true;
 
                 };
 
-                return false;
+                status=false;
 
             };
             
@@ -110,13 +112,15 @@ bool auth_middleware::entry(boost::beast::http::request<boost::beast::http::stri
 
         res.set(boost::beast::http::field::authorization,"Bearer "+token);
 
-        return true;
+        status=true;
 
     } else{
 
-        return false;
+        status=false;
 
     };
+
+    return status;
 
 };
 
