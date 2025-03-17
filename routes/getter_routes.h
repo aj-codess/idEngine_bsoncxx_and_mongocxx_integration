@@ -40,6 +40,23 @@ void get_router::route(boost::beast::http::request<boost::beast::http::string_bo
 
         this->id_getter.get_indi_id(req,res);
 
+    } else if(this->url.path_finder(req,"/id/owned_ugc")==true){
+
+        this->id_getter.owned_ugc(req,res);
+        
+    }else if(this->url.path_finder(req,"/id/owned_space")==true){
+
+        this->id_getter.owned_space(req,res);
+        
+    }else if(this->url.path_finder(req,"/space/users")==true){
+
+        this->id_getter.usersInSpace(req,res);
+        
+    }
+    else if(this->url.path_finder(req,"/space/ugc")==true){
+
+        this->id_getter.ugcInSpace(req,res);
+        
     } else if(this->url.path_finder(req,"/persistent_data")){
         
         this->persistent_getter.payload(res);

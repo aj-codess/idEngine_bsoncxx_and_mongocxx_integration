@@ -37,6 +37,7 @@ class id_schema{
     bool del_user(std::string user_id,std::string user_pos);
     bool del_space(std::string space_id,std::string space_pos);
     bool del_ugc(std::string user_id,std::string ugc_id);
+    bool del_space_ugc(std::string space_id,std::string space_ugc);
     persist get_persistent();
 };
 
@@ -164,6 +165,18 @@ bool id_schema::del_ugc(std::string user_id,std::string ugc_id){
 return true;
 
 };
+
+
+
+bool id_schema::del_space_ugc(std::string space_id,std::string space_ugc){
+
+    
+
+    return true;
+};
+
+
+
 
 
 

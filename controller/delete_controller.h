@@ -69,6 +69,10 @@ bool delete_controller::global_del(boost::beast::http::request<boost::beast::htt
 
         isDeleted=this->generator.del_ugc(this->string_cast(json_body["user_id"]),string_cast(json_body["ugc_id"]));
 
+    } else{
+
+        isDeleted=this->generator.del_space_ugc(this->string_cast(json_body["space_id"]),string_cast(json_body["space_ugc"]));
+
     };
 
 

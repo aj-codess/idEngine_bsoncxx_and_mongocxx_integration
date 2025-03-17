@@ -44,6 +44,12 @@ void delete_routes::route(boost::beast::http::request<boost::beast::http::string
 
                 res.body() = (json.delete_bool(this->del_contr.global_del(req))).dump();
 
+            }else if(this->url.path_finder(req,"/del_space_ugc")){
+
+                res.result(boost::beast::http::status::ok);
+
+                res.body() = (json.delete_bool(this->del_contr.global_del(req))).dump();
+
             } else{
 
                 this->not_found(res);

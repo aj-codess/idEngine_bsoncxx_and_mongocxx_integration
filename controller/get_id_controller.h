@@ -23,6 +23,10 @@ class getId_controller{
     public:
     getId_controller()=default;
     void get_indi_id(boost::beast::http::request<boost::beast::http::string_body>& req,boost::beast::http::response<boost::beast::http::string_body>& res);
+    void owned_ugc(boost::beast::http::request<boost::beast::http::string_body>& req,boost::beast::http::response<boost::beast::http::string_body>& res);
+    void owned_space(boost::beast::http::request<boost::beast::http::string_body>& req,boost::beast::http::response<boost::beast::http::string_body>& res);
+    void usersInSpace(boost::beast::http::request<boost::beast::http::string_body>& req,boost::beast::http::response<boost::beast::http::string_body>& res);
+    void ugcInSpace(boost::beast::http::request<boost::beast::http::string_body>& req,boost::beast::http::response<boost::beast::http::string_body>& res);
 };
 
 
@@ -59,11 +63,90 @@ void getId_controller::url_2_body_gen(boost::beast::http::request<boost::beast::
 
 void getId_controller::get_indi_id(boost::beast::http::request<boost::beast::http::string_body>& req,boost::beast::http::response<boost::beast::http::string_body>& res){
     
-    std::string payload;
+    try{
 
-    this->url_2_body_gen(req,payload);
+        std::string payload;
 
-    res.body()=(json.id_2_json(payload)).dump();
+        this->url_2_body_gen(req,payload);
 
-    res.result(boost::beast::http::status::ok);
+        res.body()=(json.id_2_json(payload)).dump();
+
+        res.result(boost::beast::http::status::ok);
+
+    } catch(std::exception& error){
+        cout<<"Error Getting Indie id - "<<error.what()<<endl;
+    };
+    
+};
+
+
+void getId_controller::owned_ugc(boost::beast::http::request<boost::beast::http::string_body>& req,boost::beast::http::response<boost::beast::http::string_body>& res){
+    try{
+
+        boost::urls::url_view url(req.target());
+
+        auto user_id=url.params().find("user_id");
+
+        //res.body()=(this->engine.).dump();
+
+        res.result(boost::beast::http::status::ok);
+
+    } catch(std::exception& error){
+        res.body()="Error getting ids";
+    }
+};
+
+
+void getId_controller::owned_space(boost::beast::http::request<boost::beast::http::string_body>& req,boost::beast::http::response<boost::beast::http::string_body>& res){
+    try{
+
+        boost::urls::url_view url(req.target());
+
+        auto user_id=url.params().find("user_id");
+
+        //res.body()=(this->engine.).dump();
+
+        res.result(boost::beast::http::status::ok);
+
+    } catch(std::exception& error){
+        res.body()="Error getting ids";
+        cout<<"internal System Error -"<<error.what()<<endl;
+    }
+};
+
+
+void getId_controller::usersInSpace(boost::beast::http::request<boost::beast::http::string_body>& req,boost::beast::http::response<boost::beast::http::string_body>& res){
+    try{
+
+        boost::urls::url_view url(req.target());
+
+        auto user_id=url.params().find("space_id");
+
+                //res.body()=(this->engine.).dump();
+
+        res.result(boost::beast::http::status::ok);
+
+    } catch(std::exception& error){
+        res.body()="Internal System Error";
+        cout<<"Internal System Error - "<<error.what()<<endl;
+    };
+};
+
+
+
+void getId_controller::ugcInSpace(boost::beast::http::request<boost::beast::http::string_body>& req,boost::beast::http::response<boost::beast::http::string_body>& res){
+    try{
+
+        boost::urls::url_view url(req.target());
+
+        auto user_id=url.params().find("space_id");
+
+                //res.body()=(this->engine.).dump();
+
+        res.result(boost::beast::http::status::ok);
+
+    } catch(std::exception& error){
+        res.body()="Internal System Error";
+        cout<<"Internal System Error - "<<error.what()<<endl;
+    };
 };
