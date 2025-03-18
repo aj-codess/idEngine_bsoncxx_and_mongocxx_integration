@@ -45,6 +45,13 @@ class db_controller{
     bool pushSpace_spaceUgc(std::string space_id,std::string spaceUgc);
     bool delete_user(std::string user_id);
     bool delete_space(std::string space_id);
+    bool delete_ugc(std::string user_id,std::string ugc_id);
+    bool delete_userFromSpace(std::string space_id,std::string user_id);
+    bool delete_ugcFromSpace(std::string space_id,std::string ugc_id);
+    std::string get_userUgc(std::string user_id);
+    std::string get_ownedSpace_id(std::string user_id);
+    std::string get_usersInSpace(std::string space_id);
+    std::string get_spaceUgc(std::string space_id);
 };
 
 
@@ -311,4 +318,188 @@ void db_controller::delete_associate(std::string space_id){
     } catch(std::exception& error){
         cout<<"Error Deleting space id Reference in user - "<<error.what()<<endl;
     };
+};
+
+
+
+bool db_controller::delete_ugc(std::string user_id,std::string ugc_id){
+    bool isDeleted;
+    try{
+
+        bsoncxx::builder::stream::document filter{};
+        filter<<"user_id"<<user_id;
+
+        bsoncxx::builder::stream::document update{};
+        update<<"$pull"<<bsoncxx::builder::stream::open_document
+        <<"ugc_id"<<ugc_id<<bsoncxx::builder::stream::close_document;
+
+        auto result=this->user.delete_one(filter.view(),update.view());
+
+        if(result && result->deleted_count() > 0){
+            isDeleted=true;
+        } else{
+            isDeleted=false;
+        }
+
+    } catch(std::exception& error){
+        cout<<"Error Deleting Ugc  - "<<error.what()<<endl;
+    };
+
+    return isDeleted;
+};
+
+
+
+bool db_controller::delete_userFromSpace(std::string space_id,std::string user_id){
+    bool isDeleted;
+    try{
+
+        bsoncxx::builder::stream::document filter{};
+        filter<<"space_id"<<space_id;
+
+        bsoncxx::builder::stream::document update{};
+        update<<"$pull"<<bsoncxx::builder::stream::open_document
+        <<"user_id"<<user_id<<bsoncxx::builder::stream::close_document;
+
+        auto result=this->space.delete_one(filter.view(),update.view());
+
+        if(result && result->deleted_count() > 0){
+            isDeleted=true;
+        } else{
+            isDeleted=false;
+        }
+
+    } catch(std::exception& error){
+        cout<<"Error Deleting User from space  - "<<error.what()<<endl;
+    };
+
+    return isDeleted;
+};
+
+
+
+
+bool db_controller::delete_ugcFromSpace(std::string space_id,std::string ugc_id){
+    bool isDeleted;
+    try{
+
+        bsoncxx::builder::stream::document filter{};
+        filter<<"space_id"<<space_id;
+
+        bsoncxx::builder::stream::document update{};
+        update<<"$pull"<<bsoncxx::builder::stream::open_document
+        <<"space_ugc"<<ugc_id<<bsoncxx::builder::stream::close_document;
+
+        auto result=this->space.delete_one(filter.view(),update.view());
+
+        if(result && result->deleted_count() > 0){
+            isDeleted=true;
+        } else{
+            isDeleted=false;
+        }
+
+    } catch(std::exception& error){
+        cout<<"Error Deleting User from space  - "<<error.what()<<endl;
+    };
+
+    return isDeleted;
+};
+
+
+
+std::string db_controller::get_userUgc(std::string user_id){
+    try{
+
+        bsoncxx::builder::stream::document filter{};
+        filter<<"user_id"<<user_id;
+
+        auto result=this->user.find_one(filter.view());
+
+        if(result){
+            auto view=result.view();
+            if(view["ugc_id"] && view["ugc_id"].type() == bsoncxx::type::k_array){
+                return bsoncxx::to_json(view["ugc_id"].get_array().value);
+            };
+        };
+
+        return "[]"
+
+    } catch(std::exception& error){
+        cout<< "Error retrieving user ugc id: " << error.what() <<endl;
+        return "{}";
+    }
+};
+
+
+
+
+std::string db_controller::get_ownedSpace_id(std::string user_id){
+    try{
+
+        bsoncxx::builder::stream::document filter{};
+        filter<<"user_id"<<user_id;
+
+        auto result=this->user.find_one(filter.view());
+
+        if(result){
+            auto view=result.view();
+            if(view["ownedSpace_id"] && view["ownedSpace_id"].type() == bson::type::k_array){
+                return bsoncxx::to_json(view["ownedSpace_id"].get_array().value);
+            };
+        };
+
+        return "[]";
+
+    } catch(std::exception& error){
+        cout<< "Error retrieving user owned space id: " << error.what() <<endl;
+        return "{}";
+    };
+}
+
+
+
+
+std::string db_controller::get_usersInSpace(std::string space_id){
+    try{
+
+        bsoncxx::builder::stream::document filter{};
+        filter<<"space_id"<<space_id;
+
+        auto result=this->space.find_one(filter.view());
+
+        if(result){
+            auto view=result.view();
+            if(view["user_id"] && view["user_id"].type() == bsoncxx::type::k_array){
+                return bsoncxx.to_json(view["user_id"].get_array().value);
+            };
+        };
+        return "[]";
+    } catch(std::exception& error){
+        cout<< "Error retrieving users id in space : " << error.what() <<endl;
+        return "{}";
+    };
+};
+    
+    
+    
+
+std::string db_controller::get_spaceUgc(std::string space_id){
+    try{
+
+        bsoncxx::builder::stream::document filter{};
+        filter<<"space_id"<<space_id;
+
+        auto result=this->space.find_one(filter.view());
+
+        if(result){
+            auto view=result.view();
+            if(view["space_ugc"] && view["space_ugc"].type() == bsoncxx::type::k_array ){
+                return bsoncxx::to_json(view["space_ugc"].get_array().value)
+            };
+        };
+        return "[]"
+    } catch(std::exception& error){
+        cout<< "Error retrieving space ugc id: " << error.what() <<endl;
+        return "{}";
+    }
 };
