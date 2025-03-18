@@ -19,6 +19,8 @@ class db_controller{
     mongocxx::database db;
     mongocxx::collection users;
     mongocxx::collection space;
+    void removeFromSpace(std::string user_id);
+    void delete_associate(std::string space_id);
 
     public:
     db_controller(){
@@ -41,6 +43,8 @@ class db_controller{
     bool pushUser_ownedSpace_id(std::string user_id,std::string space_id);
     bool pushSpace_userId(std::string space_id,std::string user_id);
     bool pushSpace_spaceUgc(std::string space_id,std::string spaceUgc);
+    bool delete_user(std::string user_id);
+    bool delete_space(std::string space_id);
 };
 
 
@@ -217,4 +221,94 @@ bool db_controller::pushSpace_spaceUgc(std::string space_id,std::string spaceUgc
     };
 
     return isPushed;
+};
+
+
+
+bool db_controller::delete_user(std::string user_id){
+    bool isDeleted;
+    try{
+
+        bsoncxx::builder::stream::document filter{};
+        filter<<"user_id"<<user_id;
+
+        auto result=this->user.delete_one(filter.view());
+
+        if(result && result->deleted_count() > 0){
+            isDeleted=true;
+        } else{
+            isDeleted=false;
+        };
+
+        this->removeFromSpace(user_id);
+
+    } catch(std::exception& error){
+        cout<<"Error Deleting User id - "<<error.what()<<endl;
+    };
+
+    return isDeleted;
+};
+
+
+
+void db_controller::removeFromSpace(std::string user_id){
+    try{
+        bsoncxx::builder::stream::document filter{};
+        filter<<"user_id"<<user_id;
+
+        bsoncxx::builder::stream::document update{};
+        update<<"$pull"<<bsoncxx::builder::stream::open_document
+        <<"user_id"<<user_id<<bsoncxx::builder::stream::close_document;
+
+        this->space.update_many(filter.view(),update.view());
+
+    } catch(std::exception& error){
+        cout<<"Error Removing from reference in space - "<<error.what()<<endl;
+    };
+};
+
+
+
+
+bool db_controller::delete_space(std::string space_id){
+    bool isDeleted;
+    try{
+
+        bsoncxx::builder::stream::document filter{};
+        filter<<"space_id"<<space_id;
+
+        auto result=this->space.delete_one(filter.view());
+
+        if(result && result->deleted_count() > 0){
+            isDeleted=true;
+        } else{
+            isDeleted=false;
+        };
+
+        this->delete_associate(space_id);
+
+    } catch(std::exception& error){
+        cout<<"Error deleting space id - "<<error.what()<<endl;
+    };
+
+    return isDeleted;
+};
+
+
+
+void db_controller::delete_associate(std::string space_id){
+    try{
+
+        bsoncxx::builder::stream::document filter{};
+        filter<<"ownedSpace_id"<<space_id;
+
+        bsoncxx::builder::stream::document update{};
+        update<<"$pull"<<bsoncxx::builder::stream::open_document
+        <<"ownedSpace_id"<<space_id<<bsoncxx::builder::stream::close_document;
+
+        this->user.delete_one(filter.view(),update.view());
+
+    } catch(std::exception& error){
+        cout<<"Error Deleting space id Reference in user - "<<error.what()<<endl;
+    };
 };
