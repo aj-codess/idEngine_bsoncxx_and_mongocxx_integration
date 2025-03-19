@@ -14,6 +14,13 @@
 
 using namespace std;
 
+struct persist_struct{
+    uint64_t current_user_n;
+    uint64_t current_space_n;
+    short current_time_len;
+};
+
+
 class db_controller{
     private:
     mongocxx::database db;
@@ -22,6 +29,8 @@ class db_controller{
     mongocxx::collection persistent;
     void removeFromSpace(std::string user_id);
     void delete_associate(std::string space_id);
+    void update_persistent(persist_struct persist);
+    persist_struct get_persistentData();
 
     public:
     db_controller(){
@@ -55,6 +64,31 @@ class db_controller{
     std::string get_usersInSpace(std::string space_id);
     std::string get_spaceUgc(std::string space_id);
 };
+
+
+
+void db_controller::update_persistent(persist_struct persist){
+    try{
+
+        bsoncxx::builder::stream::document update{};
+        update<<"$set"<<bsoncxx::builder::stream::open_document
+        <<"current_user_n"<<persist.current_user_n
+        <<"current_space_n"<<persist.current_space_n
+        <<"current_time_len"<<persist.current_time_len<<bsoncxx::builder::stream::close_document;
+
+        this->persistent.insert_one(update.view());
+
+    } catch(std::exception& error){
+        cout<<"Error updating peristent data - "<<error.what()<<endl;
+    };
+};
+
+
+
+persist_struct db_controller::get_persistentData(){
+
+};
+
 
 
 bool db_controller::create_user(std::string user_id){
