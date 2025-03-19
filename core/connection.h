@@ -104,7 +104,7 @@ void connections::start_acceptor(){
 
                 cout<<"client connection Acknoledged with ip - "<<socket->remote_endpoint()<<endl;
 
-                boost::asio::spawn(con_acceptor.get_executor(), [this,socket](boost::asio::yield_context yield) {
+                (void)boost::asio::spawn(con_acceptor.get_executor(), [this,socket](boost::asio::yield_context yield) {
         
                     r_w_handler(socket, yield);
 

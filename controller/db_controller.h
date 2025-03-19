@@ -19,6 +19,7 @@ class db_controller{
     mongocxx::database db;
     mongocxx::collection users;
     mongocxx::collection space;
+    mongocxx::collection persistent;
     void removeFromSpace(std::string user_id);
     void delete_associate(std::string space_id);
 
@@ -31,6 +32,7 @@ class db_controller{
                 db=(*client)["idEngine_database"];
                 users = db["users"];
                 space = db["space"];
+                persistent = db["persistent"];
                 cout<<"Database Connected and Seleted!"<<endl;
             }
         } catch(std::exception& error){
