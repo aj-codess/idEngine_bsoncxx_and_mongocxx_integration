@@ -30,7 +30,7 @@ class db_controller{
     void removeFromSpace(std::string user_id);
     void delete_associate(std::string space_id);
     void update_persistent(persist_struct persist);
-    persist_struct get_persistentData();
+    std::string get_persistentData();
 
     public:
     db_controller(){
@@ -85,8 +85,19 @@ void db_controller::update_persistent(persist_struct persist){
 
 
 
-persist_struct db_controller::get_persistentData(){
+std::string db_controller::get_persistentData(){
+    try{
+       
+        auto result=this->persistent.find_one({});
+        if(result){
+            return bsoncxx::to_json(result->view());
+        } else{
+            return "{}";
+        };
 
+    } catch(std::exception& error){
+        cout<<"Error Retrieving Persistent Data - "<<error.what()<<endl;
+    };
 };
 
 
