@@ -122,10 +122,10 @@ bool db_controller::create_user(std::string user_id){
             isSaved=true;
         } else{
             isSaved=false;
-        }
+        };
 
     } catch(std::exception& error){
-        cout<<"Internal Server Error - "error.what()<<endl;
+        cout<<"Internal Server Error - "<<error.what()<<endl;
     };
 
     return isSaved;
@@ -154,10 +154,10 @@ bool db_controller::create_space(std::string space_id){
             isSaved=true;
         } else{
             isSaved=false;
-        }
+        };
 
     } catch(std::exception& error){
-        cout<<"Internal Server Error - "error.what()<<endl;
+        cout<<"Internal Server Error - "<<error.what()<<endl;
     };
 
     return isSaved;
@@ -176,7 +176,7 @@ bool db_controller::pushUser_ugc_id(std::string user_id,std::string ugc_id){
         update<<"$push"<<bsoncxx::builder::stream::open_document
         <<"ugc_id"<<ugc_id<<bsoncxx::builder::stream::close_document;
 
-        auto result=this->users.update_one(filter.view(),update.vew());
+        auto result=this->users.update_one(filter.view(),update.view());
 
         if(result && result->modified_count() > 0){
             isPushed=true;
@@ -205,7 +205,7 @@ bool db_controller::pushUser_ownedSpace_id(std::string user_id,std::string space
         update<<"$push"<<bsoncxx::builder::stream::open_document
         <<"space_id"<<space_id<<bsoncxx::builder::stream::close_document;
 
-        auto result=this->user.update_one(filter.view(),update.view());
+        auto result=this->users.update_one(filter.view(),update.view());
 
         if(result && result->modified_count() > 0){
             isPushed=true;
@@ -268,7 +268,7 @@ bool db_controller::pushSpace_spaceUgc(std::string space_id,std::string spaceUgc
             isPushed=true;
         } else{
             isPushed=false;
-        }
+        };
 
     } catch(std::exception& error){
         cout<<"Error pushing space ugc id to space - "<<error.what()<<endl;
@@ -286,7 +286,7 @@ bool db_controller::delete_user(std::string user_id){
         bsoncxx::builder::stream::document filter{};
         filter<<"user_id"<<user_id;
 
-        auto result=this->user.delete_one(filter.view());
+        auto result=this->users.delete_one(filter.view());
 
         if(result && result->deleted_count() > 0){
             isDeleted=true;
@@ -360,7 +360,7 @@ void db_controller::delete_associate(std::string space_id){
         update<<"$pull"<<bsoncxx::builder::stream::open_document
         <<"ownedSpace_id"<<space_id<<bsoncxx::builder::stream::close_document;
 
-        this->user.delete_one(filter.view(),update.view());
+        this->users.delete_one(filter.view(),update.view());
 
     } catch(std::exception& error){
         cout<<"Error Deleting space id Reference in user - "<<error.what()<<endl;
@@ -380,13 +380,13 @@ bool db_controller::delete_ugc(std::string user_id,std::string ugc_id){
         update<<"$pull"<<bsoncxx::builder::stream::open_document
         <<"ugc_id"<<ugc_id<<bsoncxx::builder::stream::close_document;
 
-        auto result=this->user.delete_one(filter.view(),update.view());
+        auto result=this->users.delete_one(filter.view(),update.view());
 
         if(result && result->deleted_count() > 0){
             isDeleted=true;
         } else{
             isDeleted=false;
-        }
+        };
 
     } catch(std::exception& error){
         cout<<"Error Deleting Ugc  - "<<error.what()<<endl;
@@ -414,7 +414,7 @@ bool db_controller::delete_userFromSpace(std::string space_id,std::string user_i
             isDeleted=true;
         } else{
             isDeleted=false;
-        }
+        };
 
     } catch(std::exception& error){
         cout<<"Error Deleting User from space  - "<<error.what()<<endl;
@@ -443,7 +443,7 @@ bool db_controller::delete_ugcFromSpace(std::string space_id,std::string ugc_id)
             isDeleted=true;
         } else{
             isDeleted=false;
-        }
+        };
 
     } catch(std::exception& error){
         cout<<"Error Deleting User from space  - "<<error.what()<<endl;
@@ -460,21 +460,21 @@ std::string db_controller::get_userUgc(std::string user_id){
         bsoncxx::builder::stream::document filter{};
         filter<<"user_id"<<user_id;
 
-        auto result=this->user.find_one(filter.view());
+        auto result=this->users.find_one(filter.view());
 
         if(result){
-            auto view=result.view();
+            auto view=result->view();
             if(view["ugc_id"] && view["ugc_id"].type() == bsoncxx::type::k_array){
                 return bsoncxx::to_json(view["ugc_id"].get_array().value);
             };
         };
 
-        return "[]"
+        return "[]";
 
     } catch(std::exception& error){
-        cout<< "Error retrieving user ugc id: " << error.what() <<endl;
+        cout<< "Error retrieving user ugc id: " << error.what()<<endl;
         return "{}";
-    }
+    };
 };
 
 
@@ -486,11 +486,11 @@ std::string db_controller::get_ownedSpace_id(std::string user_id){
         bsoncxx::builder::stream::document filter{};
         filter<<"user_id"<<user_id;
 
-        auto result=this->user.find_one(filter.view());
+        auto result=this->users.find_one(filter.view());
 
         if(result){
-            auto view=result.view();
-            if(view["ownedSpace_id"] && view["ownedSpace_id"].type() == bson::type::k_array){
+            auto view=result->view();
+            if(view["ownedSpace_id"] && view["ownedSpace_id"].type() == bsoncxx::type::k_array){
                 return bsoncxx::to_json(view["ownedSpace_id"].get_array().value);
             };
         };
@@ -501,7 +501,7 @@ std::string db_controller::get_ownedSpace_id(std::string user_id){
         cout<< "Error retrieving user owned space id: " << error.what() <<endl;
         return "{}";
     };
-}
+};
 
 
 
@@ -515,9 +515,9 @@ std::string db_controller::get_usersInSpace(std::string space_id){
         auto result=this->space.find_one(filter.view());
 
         if(result){
-            auto view=result.view();
+            auto view=result->view();
             if(view["user_id"] && view["user_id"].type() == bsoncxx::type::k_array){
-                return bsoncxx.to_json(view["user_id"].get_array().value);
+                return bsoncxx::to_json(view["user_id"].get_array().value);
             };
         };
         return "[]";
@@ -539,14 +539,14 @@ std::string db_controller::get_spaceUgc(std::string space_id){
         auto result=this->space.find_one(filter.view());
 
         if(result){
-            auto view=result.view();
+            auto view=result->view();
             if(view["space_ugc"] && view["space_ugc"].type() == bsoncxx::type::k_array ){
-                return bsoncxx::to_json(view["space_ugc"].get_array().value)
+                return bsoncxx::to_json(view["space_ugc"].get_array().value);
             };
         };
-        return "[]"
+        return "[]";
     } catch(std::exception& error){
         cout<< "Error retrieving space ugc id: " << error.what() <<endl;
         return "{}";
-    }
+    };
 };

@@ -9,6 +9,8 @@
 #include <vector>
 #include <mutex>
 
+#include <db_controller.h>
+
 using namespace std;
 
 
