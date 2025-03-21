@@ -67,38 +67,39 @@ class db_controller{
 
 
 
-void db_controller::update_persistent(persist_struct persist){
-    try{
-
+void db_controller::update_persistent(persist_struct persist) {
+    try {
         bsoncxx::builder::stream::document update{};
-        update<<"$set"<<bsoncxx::builder::stream::open_document
-        <<"current_user_n"<<persist.current_user_n
-        <<"current_space_n"<<persist.current_space_n
-        <<"current_time_len"<<persist.current_time_len<<bsoncxx::builder::stream::close_document;
+        update << "$set" << bsoncxx::builder::stream::open_document
+               << "current_user_n" << bsoncxx::types::b_int64{static_cast<int64_t>(persist.current_user_n)}
+               << "current_space_n" << bsoncxx::types::b_int64{static_cast<int64_t>(persist.current_space_n)}
+               << "current_time_len" << bsoncxx::types::b_int32{static_cast<int32_t>(persist.current_time_len)}
+               << bsoncxx::builder::stream::close_document;
 
-        this->persistent.insert_one(update.view());
+        this->persistent.update_one({}, update.view(), mongocxx::options::update{}.upsert(true));
 
-    } catch(std::exception& error){
-        cout<<"Error updating peristent data - "<<error.what()<<endl;
+    } catch (const std::exception& error) {
+        std::cerr << "Error updating persistent data - " << error.what() << std::endl;
     };
 };
 
 
 
-std::string db_controller::get_persistentData(){
-    try{
-       
-        auto result=this->persistent.find_one({});
-        if(result){
+std::string db_controller::get_persistentData() {
+    try {
+        auto result = this->persistent.find_one({});
+
+        if (result && !result->view().empty()) {
             return bsoncxx::to_json(result->view());
-        } else{
-            return "{}";
         };
 
-    } catch(std::exception& error){
-        cout<<"Error Retrieving Persistent Data - "<<error.what()<<endl;
+    } catch (const std::exception& error) {
+        std::cerr << "Error Retrieving Persistent Data - " << error.what() << std::endl;
     };
+
+    return "{}";
 };
+
 
 
 
@@ -233,7 +234,7 @@ bool db_controller::pushSpace_userId(std::string space_id,std::string user_id){
         update<<"$push"<<bsoncxx::builder::stream::open_document
         <<"user_id"<<user_id<<bsoncxx::builder::stream::close_document;
 
-        auto result=this->space.update_one(filter.vew(),update.view());
+        auto result=this->space.update_one(filter.view(),update.view());
 
         if(result && result->modified_count() > 0){
             isPushed=true;
@@ -360,7 +361,7 @@ void db_controller::delete_associate(std::string space_id){
         update<<"$pull"<<bsoncxx::builder::stream::open_document
         <<"ownedSpace_id"<<space_id<<bsoncxx::builder::stream::close_document;
 
-        this->users.delete_one(filter.view(),update.view());
+        this->users.update_one(filter.view(),update.view());
 
     } catch(std::exception& error){
         cout<<"Error Deleting space id Reference in user - "<<error.what()<<endl;
@@ -380,9 +381,9 @@ bool db_controller::delete_ugc(std::string user_id,std::string ugc_id){
         update<<"$pull"<<bsoncxx::builder::stream::open_document
         <<"ugc_id"<<ugc_id<<bsoncxx::builder::stream::close_document;
 
-        auto result=this->users.delete_one(filter.view(),update.view());
+        auto result=this->users.update_one(filter.view(),update.view());
 
-        if(result && result->deleted_count() > 0){
+        if(result && result->modified_count() > 0){
             isDeleted=true;
         } else{
             isDeleted=false;
@@ -408,9 +409,9 @@ bool db_controller::delete_userFromSpace(std::string space_id,std::string user_i
         update<<"$pull"<<bsoncxx::builder::stream::open_document
         <<"user_id"<<user_id<<bsoncxx::builder::stream::close_document;
 
-        auto result=this->space.delete_one(filter.view(),update.view());
+        auto result=this->space.update_one(filter.view(),update.view());
 
-        if(result && result->deleted_count() > 0){
+        if(result && result->modified_count() > 0){
             isDeleted=true;
         } else{
             isDeleted=false;
@@ -437,9 +438,9 @@ bool db_controller::delete_ugcFromSpace(std::string space_id,std::string ugc_id)
         update<<"$pull"<<bsoncxx::builder::stream::open_document
         <<"space_ugc"<<ugc_id<<bsoncxx::builder::stream::close_document;
 
-        auto result=this->space.delete_one(filter.view(),update.view());
+        auto result=this->space.update_one(filter.view(),update.view());
 
-        if(result && result->deleted_count() > 0){
+        if(result && result->modified_count() > 0){
             isDeleted=true;
         } else{
             isDeleted=false;

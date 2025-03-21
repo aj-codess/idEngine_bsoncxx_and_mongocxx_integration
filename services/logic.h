@@ -23,6 +23,7 @@ struct persist{
 
 class id_schema{
     private:
+    std::mutex mtx;
     time_t time_id();
     uint64_t user_space_position(bool user_or_space);
     uint64_t current_user;
@@ -30,8 +31,7 @@ class id_schema{
     uint64_t current_space;
     std::vector<uint64_t> unoccupied_space;
     short current_time_id_len;
-
-    std::mutex mtx;
+    db_controller db;
 
     public:
     id_schema()=default;
@@ -107,35 +107,35 @@ string id_schema::generate_id(std::string option,std::string user_id_f_ugc,std::
 
     std::lock_guard<std::mutex> locker(mtx);
 
-    std::unique_ptr<std::string> gen=std::make_unique<std::string>();
+    std::string gen;
 
     if(option=="0"){
 
-        *gen=option+std::to_string(this->time_id())+std::to_string(this->user_space_position(false));//user
+        gen=option+std::to_string(this->time_id())+std::to_string(this->user_space_position(false));//user
+
+        this->db.create_user(gen);
 
     } else if(option=="1"){
 
-        *gen=option+std::to_string(this->time_id())+user_id_f_ugc;//ugc
+        gen=option+std::to_string(this->time_id())+user_id_f_ugc;//ugc
+
+        this->db.pushUser_ugc_id(user_id_f_ugc,gen);
 
     } else if(option=="2"){
 
-        *gen=option+std::to_string(this->time_id())+std::to_string(this->user_space_position(true));//space
+        gen=option+std::to_string(this->time_id())+std::to_string(this->user_space_position(true));//space
+
+        this->db.create_space(gen);
 
     } else if(option=="3") {
 
-        *gen=option+std::to_string(this->time_id())+user_id_f_ugc+space_id_f_ugc;//space ugc
+        gen=option+std::to_string(this->time_id())+user_id_f_ugc+space_id_f_ugc;//space ugc
 
-    } else if(option=="4"){
-
-        *gen=option+std::to_string(this->time_id())+user_id_f_ugc; //chat
-
-    } else{
-
-        *gen=option+std::to_string(this->time_id())+user_id_f_ugc+space_id_f_ugc; //space chat;
+        this->db.pushSpace_spaceUgc(space_id_f_ugc,gen);
 
     };
 
-    return *gen;
+    return gen;
 };
 
 

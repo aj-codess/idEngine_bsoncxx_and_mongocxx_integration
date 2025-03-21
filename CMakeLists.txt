@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++20")
-set(CMAKE_TOOLCHAIN_FILE /Users/mac/code/cpp_env/vcpkg/scripts/buildsystems/vcpkg.cmake)
+set(CMAKE_TOOLCHAIN_FILE /home/aj/code/Berita/vcpkg/scripts/buildsystems/vcpkg.cmake)
 
 project(id_engine VERSION 1.0)
 
@@ -58,7 +58,7 @@ target_link_libraries(main PRIVATE $<IF:$<TARGET_EXISTS:mongo::mongocxx_static>,
 
 target_include_directories(main PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../vcpkg/installed/x64-linux/include/jwt-cpp)
 
-set(GLOBAL "GenuTech->Beryl_id_engine")
+set(GLOBAL "GenuTech->id_engine")
 set(ENV_PATH "./assets/env.txt")
 
 target_compile_definitions(main PRIVATE GLOBAL="${GLOBAL}")
