@@ -9,8 +9,10 @@
 #include <global_dcl.h>
 
 #include <boost/asio.hpp>
-#include <boost/asio/spawn.hpp>
-#include <boost/coroutine/all.hpp>
+#include <boost/asio/awaitable.hpp>
+#include <boost/asio/use_awaitable.hpp>
+#include <boost/asio/co_spawn.hpp>
+#include <boost/asio/detatched.hpp>
 #include <boost/beast.hpp>
 
 
@@ -27,8 +29,8 @@ private:
     boost::asio::ip::tcp::resolver endpoint_resolver;
     boost::asio::ip::tcp::endpoint server_endpoint;
     void start_listener();
-    void start_acceptor();
-    void r_w_handler(std::shared_ptr<boost::asio::ip::tcp::socket> socket, boost::asio::yield_context yield);
+    boost::asio::awaitable<void> start_acceptor();
+    boost::asio::awaitable<void> r_w_handler(std::shared_ptr<boost::asio::ip::tcp::socket> socket);
 
 public:
     bool get_status() const {
@@ -84,73 +86,72 @@ void connections::start_listener(){
 
     cout<<"server endpoint is - "<<server_endpoint<<endl;
 
-    this->start_acceptor();
+    boost::asio::co_spawn(ioc,[this]()->boost::asio::awaitable<void>{
+        co_await this->start_acceptor();
+        co_return;
+    },boost::asio::detached);
 };
 
 
 
 
-void connections::start_acceptor(){
+boost::asio::awaitable<void> connections::start_acceptor(){
 
-    auto socket=std::make_shared<boost::asio::ip::tcp::socket>(ioc);
+    try{
 
-    con_acceptor.async_accept(*socket,[this,socket](const boost::system::error_code ec){
+        for(;;){
+            auto socket=std::make_shared<boost::asio::ip::tcp::socket>(ioc);
 
-        if(!ec){
-
-            this->status=true;
+            co_await con_acceptor.async_accept(*socket,boost::asio::use_awaitable);
 
             if(socket->is_open()){
+                status=true;
 
-                cout<<"client connection Acknoledged with ip - "<<socket->remote_endpoint()<<endl;
+                cout<<"client Accepted with remote endpoint - "<<socket->remote_endpoint()<<endl;
 
-                (void)boost::asio::spawn(con_acceptor.get_executor(), [this,socket](boost::asio::yield_context yield) {
-        
-                    r_w_handler(socket, yield);
+                boost::asio::co_spawn(ioc,[this,socket]()->boost::asio::awaitable{
+                    try{
 
-                });
+                        co_await this->r_w_handler(socket);
 
-            };
-
-            this->start_acceptor();
-
-        } else{
-
-            cout<<"Error Accepting - "<<ec.message()<<endl;
-
-            this->status=false;
-
-            this->start_listener();
-
+                    } catch(std::exception& error){
+                        cout<<"exception with socket_handler - "<<error.what()<<endl;
+                    };
+                    co_return;
+                },boost::asio::detached)
+            }
+            
         }
 
-    });
-
+    } catch(std::exception& error){
+        cout<<"Error Accepting Clients - "<<error.what()<<endl;
+        this->open_acceptor();
+    };
 
 };
 
 
 
-void connections::r_w_handler(std::shared_ptr<boost::asio::ip::tcp::socket> socket, boost::asio::yield_context yield) {
+void connections::r_w_handler(std::shared_ptr<boost::asio::ip::tcp::socket> socket) {
 
     boost::beast::tcp_stream stream_socket(std::move(*socket));
+
+    boost::beast::flat_buffer buffer;
 
     for (;;) {
         bool client_cutOut = false;
 
         try {
 
-            boost::beast::flat_buffer buffer;
-
             boost::beast::http::request<boost::beast::http::string_body> req;
 
             boost::beast::http::response<boost::beast::http::string_body> res;
 
-            boost::beast::http::async_read(stream_socket, buffer, req, yield);
+            co_await boost::beast::http::async_read(stream_socket, buffer, req,boost::asio::use_awaitable);
 
             this->handler.request_handler(req, res);
 
-            boost::beast::http::async_write(stream_socket, res, yield);
+            co_await boost::beast::http::async_write(stream_socket, res, boost::asio::use_awaitable);
 
             if (res.need_eof()) {
 
@@ -184,4 +185,6 @@ void connections::r_w_handler(std::shared_ptr<boost::asio::ip::tcp::socket> sock
 
         };
     }
+
+    co_return;
 }
