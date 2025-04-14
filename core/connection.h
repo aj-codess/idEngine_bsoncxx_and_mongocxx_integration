@@ -12,7 +12,7 @@
 #include <boost/asio/awaitable.hpp>
 #include <boost/asio/use_awaitable.hpp>
 #include <boost/asio/co_spawn.hpp>
-#include <boost/asio/detatched.hpp>
+#include <boost/asio/detached.hpp>
 #include <boost/beast.hpp>
 
 
@@ -75,21 +75,24 @@ try{
 
 
 void connections::start_listener(){
+    try{
+        con_acceptor.open(server_endpoint.protocol());
 
-    con_acceptor.open(server_endpoint.protocol());
+        con_acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
 
-    con_acceptor.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+        con_acceptor.bind(server_endpoint);
 
-    con_acceptor.bind(server_endpoint);
+        con_acceptor.listen();
 
-    con_acceptor.listen();
+        cout<<"server endpoint is - "<<server_endpoint<<endl;
 
-    cout<<"server endpoint is - "<<server_endpoint<<endl;
-
-    boost::asio::co_spawn(ioc,[this]()->boost::asio::awaitable<void>{
-        co_await this->start_acceptor();
-        co_return;
-    },boost::asio::detached);
+        boost::asio::co_spawn(ioc,[this]()->boost::asio::awaitable<void>{
+            co_await this->start_acceptor();
+            co_return;
+        },boost::asio::detached);
+    } catch(std::exception& error){
+        cout<<"Error With listener Starter - "<<error.what()<<endl;
+    }
 };
 
 
@@ -109,7 +112,7 @@ boost::asio::awaitable<void> connections::start_acceptor(){
 
                 cout<<"client Accepted with remote endpoint - "<<socket->remote_endpoint()<<endl;
 
-                boost::asio::co_spawn(ioc,[this,socket]()->boost::asio::awaitable{
+                boost::asio::co_spawn(ioc,[this,socket]()->boost::asio::awaitable<void>{
                     try{
 
                         co_await this->r_w_handler(socket);
@@ -118,21 +121,20 @@ boost::asio::awaitable<void> connections::start_acceptor(){
                         cout<<"exception with socket_handler - "<<error.what()<<endl;
                     };
                     co_return;
-                },boost::asio::detached)
+                },boost::asio::detached);
             }
             
         }
 
     } catch(std::exception& error){
         cout<<"Error Accepting Clients - "<<error.what()<<endl;
-        this->open_acceptor();
     };
 
 };
 
 
 
-void connections::r_w_handler(std::shared_ptr<boost::asio::ip::tcp::socket> socket) {
+boost::asio::awaitable<void> connections::r_w_handler(std::shared_ptr<boost::asio::ip::tcp::socket> socket) {
 
     boost::beast::tcp_stream stream_socket(std::move(*socket));
 
