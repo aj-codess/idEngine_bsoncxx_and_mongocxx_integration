@@ -173,11 +173,13 @@ bool db_controller::pushUser_ugc_id(std::string user_id,std::string ugc_id){
         bsoncxx::builder::stream::document filter{};
         filter<<"user_id"<<user_id;
 
+        bsoncxx::document::value filter_doc=filter.extract();
+
         bsoncxx::builder::stream::document update{};
         update<<"$push"<<bsoncxx::builder::stream::open_document
         <<"ugc_id"<<ugc_id<<bsoncxx::builder::stream::close_document;
 
-        auto result=this->users.update_one(filter.view(),update.view());
+        auto result=this->users.update_one(filter_doc.view(),update.view());
 
         if(result && result->modified_count() > 0){
             isPushed=true;
@@ -202,11 +204,13 @@ bool db_controller::pushUser_ownedSpace_id(std::string user_id,std::string space
         bsoncxx::builder::stream::document filter{};
         filter<<"user_id"<<user_id;
 
+        bsoncxx::document::value filter_doc=filter.extract();
+
         bsoncxx::builder::stream::document update{};
         update<<"$push"<<bsoncxx::builder::stream::open_document
         <<"space_id"<<space_id<<bsoncxx::builder::stream::close_document;
 
-        auto result=this->users.update_one(filter.view(),update.view());
+        auto result=this->users.update_one(filter_doc.view(),update.view());
 
         if(result && result->modified_count() > 0){
             isPushed=true;
@@ -230,11 +234,13 @@ bool db_controller::pushSpace_userId(std::string space_id,std::string user_id){
         bsoncxx::builder::stream::document filter{};
         filter<<"space_id"<<space_id;
 
+        bsoncxx::document::value filter_doc=filter.extract();
+
         bsoncxx::builder::stream::document update{};
         update<<"$push"<<bsoncxx::builder::stream::open_document
         <<"user_id"<<user_id<<bsoncxx::builder::stream::close_document;
 
-        auto result=this->space.update_one(filter.view(),update.view());
+        auto result=this->space.update_one(filter_doc.view(),update.view());
 
         if(result && result->modified_count() > 0){
             isPushed=true;
@@ -259,11 +265,13 @@ bool db_controller::pushSpace_spaceUgc(std::string space_id,std::string spaceUgc
         bsoncxx::builder::stream::document filter{};
         filter<<"space_id"<<space_id;
 
+        bsoncxx::document::value filter_doc=filter.extract();
+
         bsoncxx::builder::stream::document update{};
         update<<"$push"<<bsoncxx::builder::stream::open_document
         <<"space_ugc"<<spaceUgc<<bsoncxx::builder::stream::close_document;
 
-        auto result=this->space.update_one(filter.view(),update.view());
+        auto result=this->space.update_one(filter_doc.view(),update.view());
 
         if(result && result->modified_count() > 0){
             isPushed=true;
@@ -311,11 +319,13 @@ void db_controller::removeFromSpace(std::string user_id){
         bsoncxx::builder::stream::document filter{};
         filter<<"user_id"<<user_id;
 
+        bsoncxx::document::value filter_doc = filter.extract();
+
         bsoncxx::builder::stream::document update{};
         update<<"$pull"<<bsoncxx::builder::stream::open_document
         <<"user_id"<<user_id<<bsoncxx::builder::stream::close_document;
 
-        this->space.update_many(filter.view(),update.view());
+        this->space.update_many(filter_doc.view(),update.view());
 
     } catch(std::exception& error){
         cout<<"Error Removing from reference in space - "<<error.what()<<endl;
@@ -357,11 +367,13 @@ void db_controller::delete_associate(std::string space_id){
         bsoncxx::builder::stream::document filter{};
         filter<<"ownedSpace_id"<<space_id;
 
+        bsoncxx::document::value filter_doc=filter.extract();
+
         bsoncxx::builder::stream::document update{};
         update<<"$pull"<<bsoncxx::builder::stream::open_document
         <<"ownedSpace_id"<<space_id<<bsoncxx::builder::stream::close_document;
 
-        this->users.update_one(filter.view(),update.view());
+        this->users.update_one(filter_doc.view(),update.view());
 
     } catch(std::exception& error){
         cout<<"Error Deleting space id Reference in user - "<<error.what()<<endl;
@@ -377,11 +389,13 @@ bool db_controller::delete_ugc(std::string user_id,std::string ugc_id){
         bsoncxx::builder::stream::document filter{};
         filter<<"user_id"<<user_id;
 
+        bsoncxx::document::value filter_doc=filter.extract();
+
         bsoncxx::builder::stream::document update{};
         update<<"$pull"<<bsoncxx::builder::stream::open_document
         <<"ugc_id"<<ugc_id<<bsoncxx::builder::stream::close_document;
 
-        auto result=this->users.update_one(filter.view(),update.view());
+        auto result=this->users.update_one(filter_doc.view(),update.view());
 
         if(result && result->modified_count() > 0){
             isDeleted=true;
@@ -405,11 +419,13 @@ bool db_controller::delete_userFromSpace(std::string space_id,std::string user_i
         bsoncxx::builder::stream::document filter{};
         filter<<"space_id"<<space_id;
 
+        bsoncxx::document::value filter_doc=filter.extract();
+
         bsoncxx::builder::stream::document update{};
         update<<"$pull"<<bsoncxx::builder::stream::open_document
         <<"user_id"<<user_id<<bsoncxx::builder::stream::close_document;
 
-        auto result=this->space.update_one(filter.view(),update.view());
+        auto result=this->space.update_one(filter_doc.view(),update.view());
 
         if(result && result->modified_count() > 0){
             isDeleted=true;
@@ -434,11 +450,13 @@ bool db_controller::delete_ugcFromSpace(std::string space_id,std::string ugc_id)
         bsoncxx::builder::stream::document filter{};
         filter<<"space_id"<<space_id;
 
+        bsoncxx::document::value filter_doc=filter.extract();
+
         bsoncxx::builder::stream::document update{};
         update<<"$pull"<<bsoncxx::builder::stream::open_document
         <<"space_ugc"<<ugc_id<<bsoncxx::builder::stream::close_document;
 
-        auto result=this->space.update_one(filter.view(),update.view());
+        auto result=this->space.update_one(filter_doc.view(),update.view());
 
         if(result && result->modified_count() > 0){
             isDeleted=true;
